@@ -54,7 +54,6 @@
       rec.onstop = e => exportVid(new Blob(chunks, {type: 'video/webm'}));
       
       rec.start();
-      setTimeout(()=>rec.stop(), 3000); // stop recording in 3s
     }
 
     function exportVid(blob) {
