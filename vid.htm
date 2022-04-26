@@ -1,0 +1,72 @@
+<div id="theater">
+  <video id="video" src="capture (3).webm" controls="false"></video>
+  <img id="img" src = "tree.jpg"/>
+  <canvas id="canvas"></canvas>
+  <label>
+    <br />Try to play me :)</label>
+  <br />
+  <script>
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var video = document.getElementById('video');
+    var img = document.getElementById('img');
+    
+    video.currentTime = 0.9;
+    // video.play();
+    // video.loop = true;
+
+    // set canvas size = video size when known
+    video.addEventListener('loadedmetadata', function() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    });
+
+    video.addEventListener('play', function() {
+      var $this = this; //cache
+      (function loop() {
+        if (!$this.paused && !$this.ended) {
+          ctx.globalCompositeOperation = 'copy';
+          ctx.drawImage($this, 0, 0);
+          
+          ctx.globalCompositeOperation="multiply";
+          
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          setTimeout(loop, 1000 / 30); // drawing at 30fps
+        }
+      })(); 
+      
+      startRecording();
+    }, 0);
+    
+    var rec;
+    
+    video.addEventListener('ended', function() {
+      rec.stop();
+    }, 0);
+    
+    function startRecording() {
+      const chunks = []; // here we will store our recorded media chunks (Blobs)
+      const stream = canvas.captureStream(); // grab our canvas MediaStream
+      rec = new MediaRecorder(stream); // init the recorder
+      // every time the recorder has new data, we will store it in our array
+      rec.ondataavailable = e => chunks.push(e.data);
+      // only when the recorder stops, we construct a complete Blob from all the chunks
+      rec.onstop = e => exportVid(new Blob(chunks, {type: 'video/webm'}));
+      
+      rec.start();
+      setTimeout(()=>rec.stop(), 3000); // stop recording in 3s
+    }
+
+    function exportVid(blob) {
+      const vid = document.createElement('video');
+      vid.src = URL.createObjectURL(blob);
+      vid.controls = true;
+      document.body.appendChild(vid);
+      const a = document.createElement('a');
+      a.download = 'myvid.webm';
+      a.href = vid.src;
+      a.textContent = 'download the video';
+      document.body.appendChild(a);
+    }
+  </script>
+</div>
